@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Simple explanation:** This project takes a raw finance spreadsheet, cleans up any mistakes or missing values, then automatically does the math to find useful patterns, makes charts, and finally shows everything in an easy‑to‑use desktop program. You don’t need to know programming – just run a few commands and you’ll see tidy tables, simple statistics, and pictures that help you understand the financial data.
+This project takes a raw finance spreadsheet, cleans up any mistakes or missing values, then automatically does the math to find useful patterns, makes charts, and finally shows everything in an easy‑to‑use desktop program. You don’t need to know programming – just run a few commands and you’ll see tidy tables, simple statistics, and pictures that help you understand the financial data.
 
 This repository implements a complete data‑analytics workflow for a finance dataset. It demonstrates:
 - Data cleaning and preprocessing
