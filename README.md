@@ -1,6 +1,9 @@
 # Real‑Life Data Analytics System using Python
 
 ## Overview
+
+**Simple explanation:** This project takes a raw finance spreadsheet, cleans up any mistakes or missing values, then automatically does the math to find useful patterns, makes charts, and finally shows everything in an easy‑to‑use desktop program. You don’t need to know programming – just run a few commands and you’ll see tidy tables, simple statistics, and pictures that help you understand the financial data.
+
 This repository implements a complete data‑analytics workflow for a finance dataset. It demonstrates:
 - Data cleaning and preprocessing
 - Data manipulation and aggregation
@@ -19,6 +22,14 @@ All code is written in Python 3.11+ and uses popular data‑science libraries.
 - `visualization/visualize.py` – matplotlib visualisations saved under `visualization/images/`.
 - `visualization/images/` – PNG files produced by the visualisation script.
 - `app/app.py` – Tkinter GUI that displays the cleaned data, statistics and visualisations.
+
+## Module Descriptions
+
+- **data_cleaning/clean_data.py** – Reads the original CSV, fixes missing values and data‑type issues, and writes a clean version that other scripts can safely use.
+- **computations/compute_stats.py** – Calculates basic numbers (totals, averages), looks for relationships between columns, and creates simple forecasts. The results are saved as CSV files for later use.
+- **data_manipulation/data_analysis.py** – Groups the cleaned data by category and month, ranks spending categories, and produces a summary file that shows how spending changes over time.
+- **visualization/visualize.py** – Loads the summary CSVs and draws charts (bar, line, pie) with matplotlib, saving the images as PNG files.
+- **app/app.py** – A small desktop program built with Tkinter. It shows the cleaned table, lets you view the statistics on demand, and displays the generated charts in three tabs, so you can explore the finance data without writing any code.
 
 
 - `FINAL‑PROJECT‑REQUIREMENTS‑INTE‑202‑Integrative‑Programming‑and‑Technologies.pdf` – assignment specification.
