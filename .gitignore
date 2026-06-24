@@ -1,0 +1,63 @@
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Python caches & compiled byte-code
+__pycache__/
+*.py[cod]               # *.pyc, *.pyo, *.pyd
+
+# Virtual-environment directories
+venv/
+.env/
+ENV/
+.venv/
+.virtualenv/
+.Python
+
+# Build / distribution artefacts
+build/
+dist/
+*.egg-info/
+*.egg
+*.whl
+
+# Test / coverage artefacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.cache
+.mypy_cache/
+
+# IDE / editor specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Jupyter / notebook checkpoints
+.ipynb_checkpoints/
+
+# Log files
+*.log
+logs/
+
+# Generated data dumps (CSV, etc.)
+# Adjust if you need to keep specific CSVs.
+data_*/*.csv
+data_*/**/*.csv
+
+# Generated visualisations (images, plots, etc.)
+visualization/images/
+*.png
+*.jpg
+*.jpeg
+*.svg
+
+# Temporary / backup files
+*~
+*.tmp
+*.bak
+*.swp
+*.swo
+FINAL-PROJECT-REQUIREMENTS-INTE-202-Integrative-Programming-and-Technologies.pdf
