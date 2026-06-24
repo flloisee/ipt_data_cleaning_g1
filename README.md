@@ -31,9 +31,6 @@ All code is written in Python 3.11+ and uses popular data‑science libraries.
 - **visualization/visualize.py** – Loads the summary CSVs and draws charts (bar, line, pie) with matplotlib, saving the images as PNG files.
 - **app/app.py** – A small desktop program built with Tkinter. It shows the cleaned table, lets you view the statistics on demand, and displays the generated charts in three tabs, so you can explore the finance data without writing any code.
 
-
-- `FINAL‑PROJECT‑REQUIREMENTS‑INTE‑202‑Integrative‑Programming‑and‑Technologies.pdf` – assignment specification.
-
 ## Prerequisites
 - Python 3.11 or newer
 - pip (or a virtual‑environment manager)
