@@ -42,6 +42,10 @@ source .venv/bin/activate   # macOS / Linux
 pip install pandas numpy scipy matplotlib pillow
 ```
 
+## VSCode
+
+- You can also run the Python scripts directly from VSCode's integrated terminal or by right‑clicking a script and selecting **Run Python File in Terminal**.
+
 ## Data Preparation
 1. Ensure `budgetwise_finance_dataset.csv` is present in the repository root.
 2. Run the cleaning script to produce a cleaned CSV:
