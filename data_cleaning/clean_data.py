@@ -13,6 +13,7 @@ The script follows the exact specifications given in the assignment and uses onl
 """
 
 import re
+from pathlib import Path
 import pandas as pd
 import numpy as np
 from scipy import stats
@@ -133,7 +134,8 @@ def clean_location(loc):
 
 
 def main():
-    input_path = r"/Volumes/flloiseeSSD/Dev Projects/PythonProjects/IPT/Group 1 Project/cleaning_main/budgetwise_finance_dataset.csv"
+    script_dir = Path(__file__).parent
+    input_path = script_dir.parent / "budgetwise_finance_dataset.csv"
     df = pd.read_csv(input_path)
     df = df.dropna(subset=["date"])
     df = df.dropna(subset=["category"])
@@ -165,7 +167,7 @@ def main():
     df["location"] = df["location"].astype(str)
     # Ensure any missing notes are filled with N/A (safety)
     df["notes"] = df["notes"].replace(r'^\s*$', np.nan, regex=True).fillna("N/A")
-    output_path = r"/Volumes/flloiseeSSD/Dev Projects/PythonProjects/IPT/Group 1 Project/cleaning_main/data_cleaning/cleaned_budgetwise_finance_dataset.csv"
+    output_path = script_dir / "cleaned_budgetwise_finance_dataset.csv"
     df.to_csv(output_path, index=False)
     print(f"Cleaning complete. Cleaned file saved to: {output_path}")
 

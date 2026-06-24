@@ -1,97 +1,112 @@
-# Real‑Life Data Analytics System using Python
+# BudgetWise Finance Data Cleaning & Analytics
 
-## Overview
+Academic project for **INTE-202 — Integrative Programming and Technologies**. A complete data‑analytics pipeline that cleans a messy finance CSV, computes statistics and trends, aggregates spending by category and month, generates four matplotlib visualisations, and presents everything through a Tkinter GUI.
 
-This project takes a raw finance spreadsheet, cleans up any mistakes or missing values, then automatically does the math to find useful patterns, makes charts, and finally shows everything in an easy‑to‑use desktop program. You don’t need to know programming – just run a few commands and you’ll see tidy tables, simple statistics, and pictures that help you understand the financial data.
+**Tech stack:** Python 3.11+, pandas, numpy, scipy, matplotlib, Pillow, tkinter.
 
-This repository implements a complete data‑analytics workflow for a finance dataset. It demonstrates:
-- Data cleaning and preprocessing
-- Data manipulation and aggregation
-- Statistical analysis and forecasting
-- Generation of visualisations
-- A Tkinter‑based GUI for interactive exploration
+## Dataset
 
-All code is written in Python 3.11+ and uses popular data‑science libraries.
+`budgetwise_finance_dataset.csv` — 15,901 rows × 9 columns:
+
+| Column | Description |
+|---|---|
+| `transaction_id` | Unique transaction identifier |
+| `user_id` | Customer identifier |
+| `date` | Transaction date (mixed formats: `2023-04-25`, `08/05/2022`, `31-12-23`) |
+| `transaction_type` | `Income` or `Expense` |
+| `category` | Spending category (with intentional misspellings: `Educaton`, `Fod`, `rntt`) |
+| `amount` | Numeric value (may include currency prefixes like `Rs.828`) |
+| `payment_mode` | Payment method (may be abbreviated: `crd`, `csh`) |
+| `location` | City name (may be shortened: `BAN`, `HYD`) |
+| `notes` | Free‑text memo |
 
 ## Repository Structure
-- `budgetwise_finance_dataset.csv` – original raw dataset (≥ 500 rows, 6+ columns).
-- `data_cleaning/clean_data.py` – script that cleans the raw CSV and produces `cleaned_budgetwise_finance_dataset.csv`.
-- `data_cleaning/cleaned_budgetwise_finance_dataset.csv` – cleaned version used by downstream scripts.
-- `computations/compute_stats.py` – statistical summary, correlation, trend and forecast generation.
-- `data_manipulation/data_analysis.py` – aggregation, category ranking and monthly trend analysis.
-- `visualization/visualize.py` – matplotlib visualisations saved under `visualization/images/`.
-- `visualization/images/` – PNG files produced by the visualisation script.
-- `app/app.py` – Tkinter GUI that displays the cleaned data, statistics and visualisations.
+
+```
+.
+├── budgetwise_finance_dataset.csv    # Raw dataset (15,901 rows)
+├── data_cleaning/
+│   ├── clean_data.py                 # Standardises categories, parses amounts, removes outliers
+│   └── cleaned_budgetwise_finance_dataset.csv  # Output: cleaned CSV
+├── computations/
+│   ├── compute_stats.py              # NumPy/SciPy stats, correlation, linear forecast
+│   ├── statistics_summary.csv        # Output: mean, median, mode, std, min, max, trend params
+│   └── category_frequencies.csv      # Output: category frequency distribution
+├── data_manipulation/
+│   ├── data_analysis.py              # Pandas aggregation: category stats, monthly totals, trend
+│   └── aggregated_budgetwise.csv     # Output: category stats + monthly totals + Pearson r
+├── visualization/
+│   ├── visualize.py                  # 4 matplotlib charts (bar, line, pie, histogram)
+│   └── images/                       # Output: PNG files (gitignored)
+├── app/
+│   └── app.py                        # Tkinter GUI — 3 tabs: Data, Statistics, Plots
+├── AGENTS.md                         # Setup & execution guidance for AI coding assistants
+└── .gitignore                        # Blocks CSVs under data_*/, PNGs, venvs, IDE files
+```
 
 ## Module Descriptions
 
-- **data_cleaning/clean_data.py** – Reads the original CSV, fixes missing values and data‑type issues, and writes a clean version that other scripts can safely use.
-- **computations/compute_stats.py** – Calculates basic numbers (totals, averages), looks for relationships between columns, and creates simple forecasts. The results are saved as CSV files for later use.
-- **data_manipulation/data_analysis.py** – Groups the cleaned data by category and month, ranks spending categories, and produces a summary file that shows how spending changes over time.
-- **visualization/visualize.py** – Loads the summary CSVs and draws charts (bar, line, pie) with matplotlib, saving the images as PNG files.
-- **app/app.py** – A small desktop program built with Tkinter. It shows the cleaned table, lets you view the statistics on demand, and displays the generated charts in three tabs, so you can explore the finance data without writing any code.
+- **`data_cleaning/clean_data.py`** — Reads the raw CSV and applies: category normalisation (handles 50+ misspellings like `Educaton`→`Education`, `Fod`→`Food`), amount parsing (`"Rs.828"`→`828.0`), payment‑mode and location standardisation, date coercion, duplicate removal, and Z‑score outlier filtering (`\|z\| > 3`). Input/output paths are resolved relative to `__file__`.
+
+- **`computations/compute_stats.py`** — Pure NumPy/SciPy (no pandas). Loads the cleaned CSV via `np.loadtxt` with **hardcoded column indices** (2=date, 4=category, 5=amount). Computes basic statistics (mean, median, mode, std, min, max), Pearson correlation between amount and date, OLS linear regression, and a 30‑day forecast. Outputs `statistics_summary.csv` and `category_frequencies.csv`.
+
+- **`data_manipulation/data_analysis.py`** — Pandas aggregation script. Groups transactions by category (total, average, count, percentage, rank), computes monthly totals via `dt.to_period("M")`, and runs a Pearson correlation on the monthly trend. Outputs a single multi‑section `aggregated_budgetwise.csv`.
+
+- **`visualization/visualize.py`** — Generates four matplotlib figures (all filtered to Expense transactions): bar chart of expenses by category, line chart of monthly expense trend, pie chart of payment‑mode distribution, and histogram of expense amounts. PNGs saved to `visualization/images/` at 300 dpi.
+
+- **`app/app.py`** — Tkinter application with a styled dashboard header (total transactions, total expenses, average amount, date range). Three tabs: **Data** (sortable treeview with batch loading — 200 rows at a time), **Statistics** (on‑demand computation via the sibling `compute_stats` module), **Plots** (invokes the visualisation module and displays the resulting PNGs). Patches `sys.path` to import sibling packages — run as `python app/app.py` from the repo root.
 
 ## Prerequisites
-- Python 3.11 or newer
-- pip (or a virtual‑environment manager)
 
-## Installation
+- Python 3.11+
+- pip (virtual environment recommended)
+
+## Setup
+
 ```bash
-# Clone the repository (if you haven't already)
 git clone <repo‑url>
 cd ipt_data_cleaning_g1
 
-# Create and activate a virtual environment (optional but recommended)
 python -m venv .venv
 source .venv/bin/activate   # macOS / Linux
-# .venv\Scripts\activate.bat # Windows
 
-# Install required libraries
 pip install pandas numpy scipy matplotlib pillow
 ```
 
-## VSCode
+## Execution Order (required)
 
-- You can also run the Python scripts directly from VSCode's integrated terminal or by right‑clicking a script and selecting **Run Python File in Terminal**.
+The pipeline has a strict dependency chain. Run scripts **in this order** from the repo root.
 
-## Data Preparation
-1. Ensure `budgetwise_finance_dataset.csv` is present in the repository root.
-2. Run the cleaning script to produce a cleaned CSV:
 ```bash
+# Step 1 — Clean the raw dataset
 python data_cleaning/clean_data.py
-```
-The cleaned file will be written to `data_cleaning/cleaned_budgetwise_finance_dataset.csv`.
 
-## Running the Analyses
-- **Statistical summary & forecast**
-```bash
-python -m computations.compute_stats
-```
-Outputs `statistics_summary.csv` and `category_frequencies.csv` in `computations/`.
+# Step 2 — Statistical summary & forecast
+python -m computations.compute_stats           # → statistics_summary.csv, category_frequencies.csv
 
-- **Aggregation & monthly trend**
-```bash
-python data_manipulation/data_analysis.py
-```
-Creates `aggregated_budgetwise.csv` with category and monthly summaries.
+# Step 3 — Category & monthly aggregation
+python data_manipulation/data_analysis.py       # → aggregated_budgetwise.csv
 
-- **Generate visualisations**
-```bash
-python -m visualization.visualize
-```
-Four PNG files are saved under `visualization/images/`.
+# Step 4 — Generate visualisations
+python -m visualization.visualize               # → visualization/images/*.png
 
-## GUI Application
-Launch the interactive desktop application:
-```bash
+# Step 5 — Launch GUI
 python app/app.py
 ```
-The window provides three tabs:
-- **Data** – sortable table view of the cleaned dataset.
-- **Statistics** – on‑demand numeric summaries.
-- **Plots** – displays the four pre‑generated visualisations.
 
+**Important notes:**
+- The `python -m` invocation works only for `computations.compute_stats` and `visualization.visualize` (no `__init__.py` in packages).
+- Run every command from the repository root; scripts use `__file__`-relative paths.
 
+## Running Individual Steps
+
+| Step | Command | Outputs |
+|---|---|---|
+| Data cleaning | `python data_cleaning/clean_data.py` | `data_cleaning/cleaned_budgetwise_finance_dataset.csv` |
+| Statistics | `python -m computations.compute_stats` | `computations/statistics_summary.csv`, `computations/category_frequencies.csv` |
+| Aggregation | `python data_manipulation/data_analysis.py` | `data_manipulation/aggregated_budgetwise.csv` |
+| Visualisations | `python -m visualization.visualize` | 4 PNGs in `visualization/images/` |
+| GUI | `python app/app.py` | Tkinter window — 3 tabs |
 
 ## License
 No license file is included. Use at your own discretion.
