@@ -77,9 +77,34 @@ class FinanceApp(tk.Tk):
             self.style.theme_use("clam")
         except tk.TclError:
             pass
-        # Configure Treeview style for better appearance
-        self.style.configure("Treeview", rowheight=35, font=("Helvetica", 14))
-        self.style.configure("Treeview.Heading", font=("Helvetica", 15, "bold"))
+        # Configure comprehensive styles
+        self.configure(bg="#f0f2f5")
+        self.style.configure("TFrame", background="#f0f2f5")
+        # Header
+        self.style.configure("Header.TFrame", background="#1a365d")
+        self.style.configure("Header.TLabel", background="#1a365d", foreground="white", font=("Helvetica Neue", 18, "bold"))
+        # Metric cards
+        self.style.configure("MetricCard.TFrame", background="white", relief="solid", borderwidth=1)
+        self.style.configure("MetricValue.TLabel", background="white", foreground="#1a365d", font=("Helvetica Neue", 22))
+        self.style.configure("MetricLabel.TLabel", background="white", foreground="#718096", font=("Helvetica Neue", 11))
+        # Notebook
+        self.style.configure("TNotebook", background="#1a365d", borderwidth=0)
+        self.style.configure("TNotebook.Tab", background="#edf2f7", foreground="#2d3748", padding=[15, 5])
+        self.style.map("TNotebook.Tab", background=[("selected", "#ffffff")], foreground=[("selected", "#1a365d")])
+        # Action buttons
+        self.style.configure("Action.TButton", background="#1a365d", foreground="white", font=("Helvetica Neue", 12, "bold"), padding=[10, 5])
+        self.style.map("Action.TButton", background=[("active", "#2b6cb0")])
+        # Treeview
+        self.style.configure("Treeview", rowheight=32, font=("Menlo", 12), background="white", foreground="#2d3748", fieldbackground="white")
+        self.style.configure("Treeview.Heading", background="#1a365d", foreground="white", font=("Helvetica Neue", 13, "bold"), relief="flat")
+        self.style.map("Treeview.Heading", background=[("active", "#2b6cb0")])
+        # Card LabelFrames
+        self.style.configure("Card.TLabelframe", background="white", relief="solid", borderwidth=1)
+        self.style.configure("Card.TLabelframe.Label", background="white", foreground="#1a365d", font=("Helvetica Neue", 13, "bold"))
+        # Plot card
+        self.style.configure("PlotCard.TFrame", background="white", relief="solid", borderwidth=1)
+        self.style.configure("PlotCaption.TLabel", background="white", foreground="#718096", font=("Helvetica Neue", 11))
+        self._build_header()
         self._create_widgets()
         # Maximize window on start‑up (cross‑platform)
         self._set_initial_window_state()
@@ -90,7 +115,61 @@ class FinanceApp(tk.Tk):
         self.df: pd.DataFrame | None = None
         self._load_dataset()
         self._populate_data_tab()
+        self._update_header_metrics()
         # Statistics will be computed on button click
+
+    # ---------------------------------------------------------------------
+    # Header
+    # ---------------------------------------------------------------------
+    def _build_header(self) -> None:
+        header = ttk.Frame(self, style="Header.TFrame")
+        header.pack(fill="x")
+        title = ttk.Label(header, text="◆  Finance Analytics Dashboard", style="Header.TLabel")
+        title.pack(side="left", padx=20, pady=15)
+        metrics_frame = ttk.Frame(header, style="Header.TFrame")
+        metrics_frame.pack(side="right", padx=20, pady=10)
+        self._metric_labels: dict[str, ttk.Label] = {}
+        for value, label in [
+            ("—", "Total Transactions"),
+            ("—", "Total Expenses"),
+            ("—", "Average Amount"),
+            ("—", "Date Range"),
+        ]:
+            card, val_lbl = self._create_metric_card(metrics_frame, value, label)
+            card.pack(side="left", padx=6)
+            self._metric_labels[label] = val_lbl
+
+    def _create_metric_card(self, parent: ttk.Frame, value: str, label: str) -> tuple[tk.Frame, ttk.Label]:
+        card = tk.Frame(parent, bg="white", relief="solid", bd=1)
+        accent = tk.Frame(card, bg="#d69e2e", width=4)
+        accent.pack(side="left", fill="y")
+        content = tk.Frame(card, bg="white")
+        content.pack(side="left", fill="both", expand=True, padx=(12, 18), pady=(6, 6))
+        val_lbl = ttk.Label(content, text=value, style="MetricValue.TLabel")
+        val_lbl.pack(anchor="w")
+        name_lbl = ttk.Label(content, text=label, style="MetricLabel.TLabel")
+        name_lbl.pack(anchor="w")
+        return card, val_lbl
+
+    def _update_header_metrics(self) -> None:
+        if self.df is None:
+            return
+        total = f"{len(self.df):,}"
+        expenses_mask = self.df["transaction_type"] == "Expense"
+        expenses_total = self.df.loc[expenses_mask, "amount"].sum()
+        expenses_total_str = f"₹{expenses_total:,.0f}" if pd.notna(expenses_total) else "—"
+        avg_amount = self.df["amount"].mean()
+        avg_str = f"₹{avg_amount:,.2f}" if pd.notna(avg_amount) else "—"
+        date_min = self.df["date"].min()
+        date_max = self.df["date"].max()
+        if pd.notna(date_min):
+            date_range_str = f"{date_min.strftime('%b %Y')} – {date_max.strftime('%b %Y')}"
+        else:
+            date_range_str = "—"
+        self._metric_labels["Total Transactions"].config(text=total)
+        self._metric_labels["Total Expenses"].config(text=expenses_total_str)
+        self._metric_labels["Average Amount"].config(text=avg_str)
+        self._metric_labels["Date Range"].config(text=date_range_str)
 
     # ---------------------------------------------------------------------
     # UI construction
@@ -133,19 +212,19 @@ class FinanceApp(tk.Tk):
         tree_container.grid_rowconfigure(0, weight=1)
         tree_container.grid_columnconfigure(0, weight=1)
         # Zebra striping tags for better readability
-        self.tree.tag_configure('odd', background='#f9f9f9')
-        self.tree.tag_configure('even', background='white')
+        self.tree.tag_configure('odd', background='#f7fafc')
+        self.tree.tag_configure('even', background='#ffffff')
         # Button container for Refresh and Load More
         button_frame = ttk.Frame(self.data_frame)
         button_frame.pack(pady=5, anchor='center')
 
         # Refresh button
-        btn = ttk.Button(button_frame, text="Refresh", command=self._refresh_data_tab)
+        btn = ttk.Button(button_frame, text="Refresh", style="Action.TButton", command=self._refresh_data_tab)
         btn.pack(side='left')
 
         # Load More button (initially visible)
-        self.load_more_btn = ttk.Button(button_frame, text=f"Load more (+{self.BATCH_SIZE})", command=self._load_more_rows)
-        self.load_all_btn = ttk.Button(button_frame, text="Load all", command=self._load_all_rows)
+        self.load_more_btn = ttk.Button(button_frame, text=f"Load more (+{self.BATCH_SIZE})", style="Action.TButton", command=self._load_more_rows)
+        self.load_all_btn = ttk.Button(button_frame, text="Load all", style="Action.TButton", command=self._load_all_rows)
         self.load_all_btn.pack(side='left', padx=(5, 0))
         self.load_more_btn.pack(side='left', padx=(5, 0))
 
@@ -311,11 +390,11 @@ class FinanceApp(tk.Tk):
         outer_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         # Compute button at top, centered
-        compute_btn = ttk.Button(outer_frame, text="Compute Statistics", command=self._populate_statistics_tab)
-        compute_btn.pack(pady=5)
+        compute_btn = ttk.Button(outer_frame, text="Compute Statistics", style="Action.TButton", command=self._populate_statistics_tab)
+        compute_btn.pack(pady=10)
 
         # Scrollable canvas for statistics sections
-        canvas = tk.Canvas(outer_frame)
+        canvas = tk.Canvas(outer_frame, bg="#f0f2f5", highlightthickness=0)
         vscroll = ttk.Scrollbar(outer_frame, orient="vertical", command=canvas.yview)
         canvas.configure(yscrollcommand=vscroll.set)
         vscroll.pack(side="right", fill="y")
@@ -352,16 +431,20 @@ class FinanceApp(tk.Tk):
             err.pack(pady=5)
             return
 
+        self._update_header_metrics()
+
         # ----- Basic Statistics -----
-        basic_frame = ttk.LabelFrame(self.stats_container, text="Basic Statistics")
-        basic_frame.pack(fill="x", padx=5, pady=5)
+        basic_frame = ttk.LabelFrame(self.stats_container, text="Basic Statistics", style="Card.TLabelframe")
+        basic_frame.pack(fill="x", padx=12, pady=8)
+        body_font = ("Helvetica Neue", 12)
+        mono_font = ("Menlo", 12)
         for i, (k, v) in enumerate(basic.items()):
-            ttk.Label(basic_frame, text=f"{k.title()}: ").grid(row=i, column=0, sticky="w", padx=(5, 2), pady=2)
-            ttk.Label(basic_frame, text=f"{v:.4f}").grid(row=i, column=1, sticky="e", padx=(2, 5), pady=2)
+            ttk.Label(basic_frame, text=f"{k.title()}: ", font=body_font).grid(row=i, column=0, sticky="w", padx=(14, 5), pady=3)
+            ttk.Label(basic_frame, text=f"{v:.4f}", font=mono_font).grid(row=i, column=1, sticky="e", padx=(5, 14), pady=3)
 
         # ----- Correlation & Trend -----
-        corr_frame = ttk.LabelFrame(self.stats_container, text="Correlation & Trend")
-        corr_frame.pack(fill="x", padx=5, pady=5)
+        corr_frame = ttk.LabelFrame(self.stats_container, text="Correlation & Trend", style="Card.TLabelframe")
+        corr_frame.pack(fill="x", padx=12, pady=8)
         from computations.compute_stats import forecast_next_amount
         forecast = forecast_next_amount(corr_trend, dates_int.max(), days_ahead=30)
         corr_items = [
@@ -373,12 +456,12 @@ class FinanceApp(tk.Tk):
             ("Forecast (30 days)", forecast),
         ]
         for i, (label, value) in enumerate(corr_items):
-            ttk.Label(corr_frame, text=f"{label}: ").grid(row=i, column=0, sticky="w", padx=(5, 2), pady=2)
-            ttk.Label(corr_frame, text=f"{value:.4f}").grid(row=i, column=1, sticky="e", padx=(2, 5), pady=2)
+            ttk.Label(corr_frame, text=f"{label}: ", font=body_font).grid(row=i, column=0, sticky="w", padx=(14, 5), pady=3)
+            ttk.Label(corr_frame, text=f"{value:.4f}", font=mono_font).grid(row=i, column=1, sticky="e", padx=(5, 14), pady=3)
 
         # ----- Category Frequency -----
-        freq_frame = ttk.LabelFrame(self.stats_container, text="Category Frequency")
-        freq_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        freq_frame = ttk.LabelFrame(self.stats_container, text="Category Frequency", style="Card.TLabelframe")
+        freq_frame.pack(fill="both", expand=True, padx=12, pady=8)
 
         tree = ttk.Treeview(freq_frame, columns=("Category", "Count"), show="headings", height=10)
         tree.heading("Category", text="Category")
@@ -402,13 +485,13 @@ class FinanceApp(tk.Tk):
         outer_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         # Generate button at top, centered
-        gen_btn = ttk.Button(outer_frame, text="Generate Plots", command=self._generate_plots)
-        gen_btn.pack(pady=5)
+        gen_btn = ttk.Button(outer_frame, text="Generate Plots", style="Action.TButton", command=self._generate_plots)
+        gen_btn.pack(pady=10)
 
         # Scrollable canvas for images
         canvas_frame = ttk.Frame(outer_frame)
         canvas_frame.pack(fill="both", expand=True, padx=0, pady=10)
-        self.canvas = tk.Canvas(canvas_frame)
+        self.canvas = tk.Canvas(canvas_frame, bg="#f0f2f5", highlightthickness=0)
         vsb = ttk.Scrollbar(canvas_frame, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=vsb.set)
         vsb.pack(side="right", fill="y")
@@ -476,9 +559,13 @@ class FinanceApp(tk.Tk):
             except Exception:
                 # Skip unreadable or unsupported image files.
                 continue
-            lbl = ttk.Label(self.plots_container, image=img)
-            lbl.image = img  # keep reference
-            lbl.pack(pady=5, anchor='center')
+            card = ttk.Frame(self.plots_container, style="PlotCard.TFrame")
+            card.pack(pady=10, padx=24, fill="x")
+            lbl = ttk.Label(card, image=img, background="white")
+            lbl.image = img
+            lbl.pack(pady=(10, 5), padx=10)
+            caption = ttk.Label(card, text=path.stem.replace("_", " ").title(), style="PlotCaption.TLabel")
+            caption.pack(pady=(0, 10))
         # Force geometry update so scrollregion reflects new content
         self.canvas.update_idletasks()
 
