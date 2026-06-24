@@ -58,6 +58,7 @@ VIS_IMG_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class FinanceApp(tk.Tk):
+    BATCH_SIZE = 200  # Number of rows to load per batch (default 200)
     """Main application window.
 
     The UI consists of three tabs:
@@ -76,7 +77,12 @@ class FinanceApp(tk.Tk):
             self.style.theme_use("clam")
         except tk.TclError:
             pass
+        # Configure Treeview style for better appearance
+        self.style.configure("Treeview", rowheight=35, font=("Helvetica", 14))
+        self.style.configure("Treeview.Heading", font=("Helvetica", 15, "bold"))
         self._create_widgets()
+        # Maximize window on start‑up (cross‑platform)
+        self._set_initial_window_state()
         # Sorting state: currently sorted column and direction (ascending)
         self._sorted_column: str | None = None
         self._ascending: bool = True
@@ -126,6 +132,9 @@ class FinanceApp(tk.Tk):
         hsb.grid(row=1, column=0, sticky="ew")
         tree_container.grid_rowconfigure(0, weight=1)
         tree_container.grid_columnconfigure(0, weight=1)
+        # Zebra striping tags for better readability
+        self.tree.tag_configure('odd', background='#f9f9f9')
+        self.tree.tag_configure('even', background='white')
         # Button container for Refresh and Load More
         button_frame = ttk.Frame(self.data_frame)
         button_frame.pack(pady=5, anchor='center')
@@ -135,7 +144,9 @@ class FinanceApp(tk.Tk):
         btn.pack(side='left')
 
         # Load More button (initially visible)
-        self.load_more_btn = ttk.Button(button_frame, text="Load more...", command=self._load_more_rows)
+        self.load_more_btn = ttk.Button(button_frame, text=f"Load more (+{self.BATCH_SIZE})", command=self._load_more_rows)
+        self.load_all_btn = ttk.Button(button_frame, text="Load all", command=self._load_all_rows)
+        self.load_all_btn.pack(side='left', padx=(5, 0))
         self.load_more_btn.pack(side='left', padx=(5, 0))
 
     def _load_dataset(self) -> None:
@@ -149,6 +160,13 @@ class FinanceApp(tk.Tk):
             self.df = None
 
     def _populate_data_tab(self) -> None:
+        # Ensure Load All button visibility based on remaining rows
+        if hasattr(self, "load_all_btn"):
+            if hasattr(self, "loaded_rows") and self.loaded_rows >= len(self.df):
+                self.load_all_btn.pack_forget()
+            else:
+                if not self.load_all_btn.winfo_ismapped():
+                    self.load_all_btn.pack(side='left', padx=(5, 0))
         if self.df is None:
             return
         # Clear existing columns & rows
@@ -164,19 +182,29 @@ class FinanceApp(tk.Tk):
                 text=heading_text,
                 command=lambda _col=col: self._sort_by_column(_col),
             )
-            self.tree.column(col, width=120, anchor="w")
+            anchor = "e" if col == "amount" else "w"
+            self.tree.column(col, width=120, anchor=anchor)
         # Determine number of rows to display.
         # If this is the first load or a refresh (loaded_rows not set or 0), show the default batch size.
         if not hasattr(self, "loaded_rows") or self.loaded_rows == 0:
-            self.loaded_rows = min(500, len(self.df))
+            self.loaded_rows = min(self.BATCH_SIZE, len(self.df))
         else:
             # Preserve the current count (e.g., after loading more rows or sorting)
             self.loaded_rows = min(self.loaded_rows, len(self.df))
         rows = self.df.head(self.loaded_rows).itertuples(index=False, name=None)
-        for row in rows:
-            # Convert possible NaT / NaN to empty strings for display.
-            display_row = ["" if pd.isna(v) else v for v in row]
-            self.tree.insert("", "end", values=display_row)
+        for idx, row in enumerate(rows):
+            display_row = []
+            for col_name, val in zip(self.df.columns, row):
+                if pd.isna(val):
+                    display_row.append("")
+                elif col_name == "date":
+                    display_row.append(val.strftime("%Y-%m-%d"))
+                elif col_name == "amount":
+                    display_row.append(f"{val:,.2f}")
+                else:
+                    display_row.append(val)
+            tag = "even" if idx % 2 == 0 else "odd"
+            self.tree.insert("", "end", values=display_row, tags=(tag,))
         # Show or hide Load More button based based on remaining rows.
         if self.loaded_rows < len(self.df):
             self._show_load_more_button()
@@ -215,24 +243,43 @@ class FinanceApp(tk.Tk):
     # Statistics tab --------------------------------------------------------
     # ---------------------------------------------------------------------
     def _load_more_rows(self) -> None:
-        """Load the next batch of 500 rows into the Data tab."""
+        """Load the next batch of 200 rows into the Data tab."""
         if self.df is None:
             return
         total_rows = len(self.df)
         if self.loaded_rows >= total_rows:
             self._hide_load_more_button()
             return
-        new_end = min(self.loaded_rows + 500, total_rows)
+        new_end = min(self.loaded_rows + self.BATCH_SIZE, total_rows)
         rows = self.df.iloc[self.loaded_rows:new_end].itertuples(index=False, name=None)
-        for row in rows:
-            display_row = ["" if pd.isna(v) else v for v in row]
-            self.tree.insert("", "end", values=display_row)
+        for offset, row in enumerate(rows):
+            idx = self.loaded_rows + offset
+            display_row = []
+            for col_name, val in zip(self.df.columns, row):
+                if pd.isna(val):
+                    display_row.append("")
+                elif col_name == "date":
+                    display_row.append(val.strftime("%Y-%m-%d"))
+                elif col_name == "amount":
+                    display_row.append(f"{val:,.2f}")
+                else:
+                    display_row.append(val)
+            tag = "even" if idx % 2 == 0 else "odd"
+            self.tree.insert("", "end", values=display_row, tags=(tag,))
         self.loaded_rows = new_end
         if self.loaded_rows >= total_rows:
             self._hide_load_more_button()
         else:
             self._show_load_more_button()
         self.update_idletasks()
+
+    def _load_all_rows(self) -> None:
+        """Load the entire dataset into the Data tab."""
+        if self.df is None:
+            return
+        self.loaded_rows = len(self.df)
+        self._populate_data_tab()
+
 
     def _show_load_more_button(self) -> None:
         if not hasattr(self, "load_more_btn"):
@@ -263,7 +310,7 @@ class FinanceApp(tk.Tk):
         outer_frame = ttk.Frame(self.stats_frame)
         outer_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        # Compute button at top
+        # Compute button at top, centered
         compute_btn = ttk.Button(outer_frame, text="Compute Statistics", command=self._populate_statistics_tab)
         compute_btn.pack(pady=5)
 
@@ -350,13 +397,17 @@ class FinanceApp(tk.Tk):
     # Plots tab -------------------------------------------------------------
     # ---------------------------------------------------------------------
     def _build_plots_tab(self) -> None:
-        # Button to generate plots
-        gen_btn = ttk.Button(self.plots_frame, text="Generate Plots", command=self._generate_plots)
+        # Container for generate button and scrollable images view
+        outer_frame = ttk.Frame(self.plots_frame)
+        outer_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Generate button at top, centered
+        gen_btn = ttk.Button(outer_frame, text="Generate Plots", command=self._generate_plots)
         gen_btn.pack(pady=5)
 
         # Scrollable canvas for images
-        canvas_frame = ttk.Frame(self.plots_frame)
-        canvas_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        canvas_frame = ttk.Frame(outer_frame)
+        canvas_frame.pack(fill="both", expand=True, padx=0, pady=10)
         self.canvas = tk.Canvas(canvas_frame)
         vsb = ttk.Scrollbar(canvas_frame, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=vsb.set)
@@ -367,19 +418,17 @@ class FinanceApp(tk.Tk):
         self.canvas_window = self.canvas.create_window((0, 0), window=self.plots_container, anchor="nw")
         self.plots_container.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
 
-
         def _on_canvas_configure(event):
             self.canvas.itemconfig(self.canvas_window, width=event.width)
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
         self.canvas.bind("<Configure>", _on_canvas_configure)
         # Ensure canvas gets focus on hover and bind mouse wheel scrolling.
-        # Ensure the canvas gets focus when mouse enters it.
         self.canvas.bind("<Enter>", lambda e: self.canvas.focus_set())
-        # Bind mouse wheel events globally so scrolling works over any widget, including images.
         self.canvas.bind_all("<MouseWheel>", self._on_canvas_mousewheel)
         self.canvas.bind_all("<Button-4>", self._on_canvas_mousewheel_linux)
         self.canvas.bind_all("<Button-5>", self._on_canvas_mousewheel_linux)
+
 
     def _generate_plots(self) -> None:
         """Invoke visualisation helpers to (re)create PNG charts and display them.
@@ -456,6 +505,21 @@ class FinanceApp(tk.Tk):
         elif event.num == 5:
             self.canvas.yview_scroll(1, "units")
         return "break"
+
+    def _set_initial_window_state(self) -> None:
+        """Maximize the window on start‑up, handling cross‑platform differences.
+
+        - Windows: uses ``self.state('zoomed')``.
+        - macOS / Linux: falls back to setting the geometry to the screen size.
+        """
+        try:
+            # Windows maximize
+            self.state("zoomed")
+        except tk.TclError:
+            # Fallback for macOS / Linux
+            width = self.winfo_screenwidth()
+            height = self.winfo_screenheight()
+            self.geometry(f"{width}x{height}")
 
 
 def main() -> None:
