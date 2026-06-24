@@ -49,6 +49,8 @@ data_*/**/*.csv
 
 # Generated visualisations (images, plots, etc.)
 visualization/images/
+._*
+AGENTS.md
 *.png
 *.jpg
 *.jpeg
