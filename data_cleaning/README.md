@@ -15,7 +15,7 @@ This is the **entry point** of the pipeline. It reads the raw 15,901-row CSV (`b
 | **Date coercion** | `pd.to_datetime(..., infer_datetime_format=True)` handles mixed formats (`2023-04-25`, `08/05/2022`, `31-12-23`). Rows that fail parsing are dropped. |
 | **Remove invalid amounts** | Non-numeric, `<= 0`, and `>= 100000` rows are dropped. |
 | **Deduplication** | Full-row duplicates are removed. |
-| **Z-score outlier filter** | Computes the Z-score (`scipy.stats.zscore`) for every value in the `amount` column, measuring how many standard deviations it lies from the mean. Rows where `\|z\| > 3` (beyond 3σ) are discarded — this removes extreme outliers while preserving ~99.7% of normally distributed data. Applied after all other cleaning steps so the mean and std are not skewed by invalid entries. |
+| **Z-score outlier filter** | Computes the Z-score (`scipy.stats.zscore`) for every value in the `amount` column, measuring how many standard deviations it lies from the mean. Rows where `\|z\| > 3` (beyond 3σ) are discarded. This removes extreme outliers while preserving ~99.7% of normally distributed data. Applied after all other cleaning steps so the mean and std are not skewed by invalid entries. |
 
 ## Output
 
