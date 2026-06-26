@@ -233,7 +233,7 @@ class FinanceApp(tk.Tk):
         A simple error dialog is shown if the file cannot be read.
         """
         try:
-            self.df = pd.read_csv(CLEANED_DATA_PATH, parse_dates=["date"], infer_datetime_format=True, keep_default_na=False)
+            self.df = pd.read_csv(CLEANED_DATA_PATH, parse_dates=["date"], keep_default_na=False)
         except Exception as exc:
             messagebox.showerror("Error", f"Failed to load dataset: {exc}")
             self.df = None
