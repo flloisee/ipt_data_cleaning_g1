@@ -66,7 +66,7 @@ def clean_amount(val):
     if pd.isna(val):
         return np.nan
     s = str(val).replace(",", "")
-    numbers = re.findall(r"[-+]?[0-9]*\.?[0-9]+", s)
+    numbers = re.findall(r"[-+]?\d+(?:\.\d+)?", s)
     if not numbers:
         return np.nan
     try:

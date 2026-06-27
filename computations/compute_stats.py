@@ -1,5 +1,6 @@
 import os
 import csv
+import pandas as pd
 import numpy as np
 from scipy import stats
 
@@ -9,15 +10,13 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data_cleaning", "clea
 def load_amounts_and_dates(csv_path):
     """Load numeric amount column and date column as numpy arrays.
     Returns:
-        amounts (np.ndarray): float array of transaction amounts.
+        amounts (np.ndarray): float64 array of transaction amounts.
         dates_int (np.ndarray): int64 array representing dates as days since epoch.
     """
-    # Load amount column (index 5) as float
-    amounts = np.loadtxt(csv_path, delimiter=",", skiprows=1, usecols=5)
-    # Load date column (index 2) as strings, then convert to datetime64[D]
-    date_strs = np.loadtxt(csv_path, delimiter="," , dtype=str, skiprows=1, usecols=2)
-    dates = date_strs.astype('datetime64[D]')
-    dates_int = dates.astype('int64')  # days since epoch for correlation
+    df = pd.read_csv(csv_path, usecols=[2, 5], parse_dates=["date"])
+    amounts = df["amount"].to_numpy(dtype=np.float64)
+    dates = df["date"].to_numpy(dtype="datetime64[D]")
+    dates_int = dates.astype("int64")  # days since epoch for correlation
     return amounts, dates_int
 
 def compute_basic_stats(amounts):
