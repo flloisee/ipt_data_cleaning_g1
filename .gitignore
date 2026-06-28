@@ -64,3 +64,5 @@ AGENTS.md
 *.swo
 FINAL-PROJECT-REQUIREMENTS-INTE-202-Integrative-Programming-and-Technologies.pdf
 bug_report.md
+computations/statistics_summary.csv
+computations/category_frequencies.csv

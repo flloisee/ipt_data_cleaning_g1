@@ -24,31 +24,36 @@ Academic project for **INTE-202 — Integrative Programming and Technologies**. 
 
 ```
 .
-├── budgetwise_finance_dataset.csv    # Raw dataset (15,901 rows)
+├── budgetwise_finance_dataset.csv      # Raw dataset (15,901 rows)
 ├── data_cleaning/
-│   ├── clean_data.py                 # Standardises categories, parses amounts, removes outliers
-│   └── cleaned_budgetwise_finance_dataset.csv  # Output: cleaned CSV
+│   ├── clean_data.py                   # Standardises categories, parses amounts, removes outliers
+│   ├── cleaned_budgetwise_finance_dataset.csv  # Output: cleaned CSV (5,157 rows)
+│   └── README.md
 ├── computations/
-│   ├── compute_stats.py              # NumPy/SciPy stats, correlation, linear forecast
-│   ├── statistics_summary.csv        # Output: mean, median, mode, std, min, max, trend params
-│   └── category_frequencies.csv      # Output: category frequency distribution
+│   ├── compute_stats.py                # pandas/NumPy/SciPy stats, correlation, linear forecast
+│   ├── statistics_summary.csv          # Output: mean, median, mode, std, min, max, trend params (gitignored)
+│   ├── category_frequencies.csv        # Output: category frequency distribution (gitignored)
+│   └── README.md
 ├── data_manipulation/
-│   ├── data_analysis.py              # Pandas aggregation: category stats, monthly totals, trend
-│   └── aggregated_budgetwise.csv     # Output: category stats + monthly totals + Pearson r
+│   ├── data_analysis.py                # Pandas aggregation: category stats, monthly totals, trend
+│   ├── aggregated_budgetwise.csv       # Output: category stats + monthly totals + Pearson r
+│   └── README.md
 ├── visualization/
-│   ├── visualize.py                  # 4 matplotlib charts (bar, line, pie, histogram)
-│   └── images/                       # Output: PNG files (gitignored)
+│   ├── visualize.py                    # 4 matplotlib charts (bar, line, pie, histogram)
+│   ├── images/                         # Output: PNG files (gitignored)
+│   └── README.md
 ├── app/
-│   └── app.py                        # Tkinter GUI — 3 tabs: Data, Statistics, Plots
-├── AGENTS.md                         # Setup & execution guidance for AI coding assistants
-└── .gitignore                        # Blocks CSVs under data_*/, PNGs, venvs, IDE files
+│   ├── app.py                          # Tkinter GUI — 3 tabs: Data, Statistics, Plots
+│   └── README.md
+├── AGENTS.md                           # Setup & execution guidance for AI coding assistants
+└── .gitignore                          # Blocks CSVs under data_*/, computations/*.csv, PNGs, venvs, IDE files
 ```
 
 ## Module Descriptions
 
-- **`data_cleaning/clean_data.py`** — Reads the raw CSV and applies: category normalisation (handles 50+ misspellings like `Educaton`→`Education`, `Fod`→`Food`), amount parsing (`"Rs.828"`→`828.0`), payment‑mode and location standardisation, date coercion, duplicate removal, and Z‑score outlier filtering (`\|z\| > 3`). Input/output paths are resolved relative to `__file__`.
+- **`data_cleaning/clean_data.py`** — Reads the raw CSV and applies: category normalisation (handles 50+ misspellings like `Educaton`→`Education`, `Fod`→`Food`), amount parsing (`"Rs.828"`→`828.0`) using the fixed regex `r"[-+]?\d+(?:\.\d+)?"`, payment‑mode and location standardisation, date coercion, duplicate removal, and Z‑score outlier filtering (`|z| > 3`). Input/output paths are resolved relative to `__file__`.
 
-- **`computations/compute_stats.py`** — Pure NumPy/SciPy (no pandas). Loads the cleaned CSV via `np.loadtxt` with **hardcoded column indices** (2=date, 4=category, 5=amount). Computes basic statistics (mean, median, mode, std, min, max), Pearson correlation between amount and date, OLS linear regression, and a 30‑day forecast. Outputs `statistics_summary.csv` and `category_frequencies.csv`.
+- **`computations/compute_stats.py`** — Mixed pandas/NumPy/SciPy approach. `load_amounts_and_dates` uses `pd.read_csv(usecols=[2,5])` for robust CSV parsing; `frequency_distribution` still uses `np.loadtxt(usecols=4)` with hardcoded column indices. Computes basic statistics (mean, median, mode, std, min, max), Pearson correlation between amount and date (continuously-valued), OLS linear regression, and a 30‑day forecast. Outputs `statistics_summary.csv` and `category_frequencies.csv`.
 
 - **`data_manipulation/data_analysis.py`** — Pandas aggregation script. Groups transactions by category (total, average, count, percentage, rank), computes monthly totals via `dt.to_period("M")`, and runs a Pearson correlation on the monthly trend. Outputs a single multi‑section `aggregated_budgetwise.csv`.
 
@@ -109,7 +114,9 @@ python app/app.py
 | GUI | `python app/app.py` | Tkinter window — 3 tabs |
 
 ## License
+
 No license file is included. Use at your own discretion.
 
 ## Contributing
+
 Feel free to open issues or submit pull requests. Follow standard Python coding conventions (PEP 8, type hints) when adding new functionality.
