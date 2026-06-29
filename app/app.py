@@ -45,6 +45,9 @@ from computations.compute_stats import (
     compute_basic_stats,
     compute_correlation_and_trend,
     frequency_distribution,
+    forecast_next_amount,
+    write_summary_csv,
+    write_category_frequencies,
 )
 
 # ---------------------------------------------------------------------------
@@ -442,10 +445,17 @@ class FinanceApp(tk.Tk):
             ttk.Label(basic_frame, text=f"{k.title()}: ", font=body_font).grid(row=i, column=0, sticky="w", padx=(14, 5), pady=3)
             ttk.Label(basic_frame, text=f"{v:.4f}", font=mono_font).grid(row=i, column=1, sticky="e", padx=(5, 14), pady=3)
 
+        # Write CSV outputs (same as compute_stats.py main())
+        stats_path = REPO_ROOT / "computations" / "statistics_summary.csv"
+        cat_path = REPO_ROOT / "computations" / "category_frequencies.csv"
+        forecast = forecast_next_amount(corr_trend, dates_int.max(), days_ahead=30)
+        write_summary_csv(basic, corr_trend, forecast, str(stats_path))
+        write_category_frequencies(categories, counts, str(cat_path))
+        messagebox.showinfo("Success", f"Statistics saved to {stats_path.parent}")
+
         # ----- Correlation & Trend -----
         corr_frame = ttk.LabelFrame(self.stats_container, text="Correlation & Trend", style="Card.TLabelframe")
         corr_frame.pack(fill="x", padx=12, pady=8)
-        from computations.compute_stats import forecast_next_amount
         forecast = forecast_next_amount(corr_trend, dates_int.max(), days_ahead=30)
         corr_items = [
             ("Pearson correlation", corr_trend["correlation"]),
