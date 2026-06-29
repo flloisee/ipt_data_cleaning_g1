@@ -16,7 +16,7 @@ structured for easy maintenance.
 import sys
 from pathlib import Path
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, messagebox
 import pandas as pd
 
 # Pillow for image resizing
